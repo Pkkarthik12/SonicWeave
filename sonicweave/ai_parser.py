@@ -16,12 +16,12 @@ def parse_music_request(prompt, api_key):
     - speed: (string) 'verylow', 'low', 'medium', 'high', 'veryhigh' (optional).
     """
     
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=f"{system_instruction}\nUser Request: {prompt}"
-    )
-    
     try:
+        response = client.models.generate_content(
+            model="models/gemini-1.5-flash",
+            contents=f"{system_instruction}\nUser Request: {prompt}"
+        )
+        
         # Clean up JSON if LLM added markdown blocks
         raw_text = response.text.strip()
         if raw_text.startswith("```json"):
@@ -30,6 +30,6 @@ def parse_music_request(prompt, api_key):
             raw_text = raw_text.split("```")[1].split("```")[0].strip()
             
         return json.loads(raw_text)
-    except Exception:
-        # Fallback
-        return {"tags": "popular", "limit": 10}
+    except Exception as e:
+        # Fallback: if AI fails, use the raw prompt as a tag
+        return {"tags": prompt.strip().replace(" ", ","), "limit": 10}
